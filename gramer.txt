@@ -1,0 +1,59 @@
+komutlar    : YENISATIR* komut (YENISATIR+ komut)* YENISATIR*
+
+komut		: KEYWORD:RETURN ifade?
+			: KEYWORD:CONTINUE
+			: KEYWORD:BREAK
+			: ifade
+
+ifade       : KEYWORD:VAR TANIMLAYICI ESITTIR ifade
+            : karsi-ifade ((KEYWORD:AND|KEYWORD:OR) karsi-ifade)*
+
+karsi-ifade : NOT karsi-ifade
+            : arit-ifade ((EE|KUCUKTUR|BUYUKTUR|KUCUKEE|BUYUKEE) arit-ifade)*
+
+arit-ifade  : terim ((TOPLAMA|CIKARMA) terim)*
+
+terim       : faktor ((CARPMA|BOLME) faktor)*
+
+faktor      : (TOPLAMA|CIKARMA) faktor
+            : usalma
+
+usalma      : cagir (USALMA faktor)*
+
+cagir       : oncelik (SOLPARANTEZ (ifade (VIRGUL ifade)*)? SAGPARANTEZ)?
+
+oncelik     : INT|FLOAT|STRING|TANIMLAYICI
+            : SOLPARANTEZ ifade SAGPARANTEZ
+            : liste-komut
+            : if-komutu
+            : for-komutu
+            : while-komut
+            : fonk-tanimi
+
+liste-komut : SOLKOSELIPARANTEZ (ifade (VIRGUL ifade)*)? SAGKOSELIPARANTEZ
+
+if-komutu   : KEYWORD:IF ifade KEYWORD:THEN
+              (komut if-komutu-b|if-komutu-c?)
+            | (YENISATIR komutlar KEYWORD:END|if-komutu-b|if-komutu-c)
+
+if-komutu-b : KEYWORD:ELIF ifade KEYWORD:THEN
+              (komut if-komutu-b|if-komutu-c?)
+            | (YENISATIR komutlar KEYWORD:END|if-komutu-b|if-komutu-c)
+
+if-komutu-c : KEYWORD:ELSE
+              komut
+            | (YENISATIR komutlar KEYWORD:END)
+
+for-komutu  : KEYWORD:FOR IDENTIFIER ESITTIR ifade KEYWORD:TO ifade
+              (KEYWORD:STEP ifade)? KEYWORD:THEN
+              komut
+            | (YENISATIR komutlar KEYWORD:END)
+
+while-komut : KEYWORD:WHILE ifade KEYWORD:THEN
+              komut
+            | (YENISATIR komutlar KEYWORD:END)
+
+fonk-tanimi : KEYWORD:FUN TANIMLAYICI?
+              SOLPARANTEZ (TANIMLAYICI (VIRGUL TANIMLAYICI)*)? SAGPARANTEZ
+              (OK ifade)
+            | (YENISATIR komutlar KEYWORD:END)
